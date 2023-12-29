@@ -63,27 +63,25 @@ type UpdateState<
     ? `${YellowCell} Won`
     : Board extends Connect4Chips[][]
     ? "Draw"
-    : State extends "🟡"
-    ? "🔴"
-    : "🟡"
+    : State extends YellowCell
+    ? RedCell
+    : YellowCell
   : never;
 
-type IsWinCells<Cells extends Connect4Cell[]> = Cells extends [
-  infer C1 extends Connect4Cell,
-  infer C2 extends Connect4Cell,
-  infer C3 extends Connect4Cell,
-  infer C4 extends Connect4Cell,
-  ...infer Rest extends Connect4Cell[]
-]
-  ? C1 extends C2
-    ? C2 extends C3
-      ? C3 extends C4
-        ? C1 extends Connect4Chips
-          ? C1
-          : IsWinCells<[C2, C3, C4, ...Rest]>
-        : IsWinCells<[C4, ...Rest]>
-      : IsWinCells<[C3, C4, ...Rest]>
-    : IsWinCells<[C2, C3, C4, ...Rest]>
+type IsWinCells<
+  Cells extends Connect4Cell[],
+  Acc extends Connect4Cell[] = []
+> = Acc["length"] extends 4
+  ? Acc[0]
+  : Cells extends [
+      infer H extends Connect4Cell,
+      ...infer Rest extends Connect4Cell[]
+    ]
+  ? Acc["length"] extends 0
+    ? IsWinCells<Rest, [H]>
+    : H extends Acc[0]
+    ? IsWinCells<Rest, [...Acc, H]>
+    : IsWinCells<Rest, []>
   : EmptyCell;
 
 type IsWinCellGroups<Group extends Connect4Cell[][]> = Group extends [
