@@ -109,13 +109,9 @@ type Move<
   infer Y extends number,
   infer X extends number
 ]
-  ? Y extends -1
+  ? Y extends -1 | [...Maze, unknown]["length"] // out of bounds -> Santa escaped
     ? CookieMaze
-    : X extends -1
-    ? CookieMaze
-    : Y extends [...Maze, unknown]["length"]
-    ? CookieMaze
-    : X extends [...Maze[0], unknown]["length"]
+    : X extends -1 | [...Maze[0], unknown]["length"] // out of bounds -> Santa escaped
     ? CookieMaze
     : UpdateMaze<
         [Y, X],
