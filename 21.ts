@@ -61,67 +61,56 @@ type UpdateBoard<
     : never
   : never;
 
-type GetWinnerFromGroup<Group extends TicTacToeCell[]> = Group extends [
-  infer V1,
-  infer V2,
-  infer V3
-]
-  ? V1 extends V2
-    ? V2 extends V3
-      ? V3 extends TicTacToeEmptyCell
-        ? TicTacToeEmptyCell
-        : V3
-      : TicTacToeEmptyCell
-    : TicTacToeEmptyCell
-  : TicTacToeEmptyCell;
+type GetWinnerFromGroup<
+  Group extends TicTacToeCell[],
+  Acc extends TicTacToeCell[] = []
+> = Acc["length"] extends 3
+  ? Acc[0]
+  : Group extends [
+      infer H extends TicTacToeCell,
+      ...infer Tail extends TicTacToeCell[]
+    ]
+  ? Acc["length"] extends 0
+    ? GetWinnerFromGroup<Tail, [H]>
+    : Acc[0] extends H
+    ? GetWinnerFromGroup<Tail, [...Acc, H]>
+    : GetWinnerFromGroup<Tail, [H]>
+  : false;
 
-type GetNextState<Game extends TicTacToeGame> = Game["board"] extends [
-  [
-    infer TopLeft extends TicTacToeCell,
-    infer TopCenter extends TicTacToeCell,
-    infer TopRight extends TicTacToeCell
-  ],
-  [
-    infer MiddleLeft extends TicTacToeCell,
-    infer MiddleCenter extends TicTacToeCell,
-    infer MiddleRight extends TicTacToeCell
-  ],
-  [
-    infer BottomLeft extends TicTacToeCell,
-    infer BottomCenter extends TicTacToeCell,
-    infer BottomRight extends TicTacToeCell
-  ]
+type GetWinnerFromGroups<Group extends TicTacToeCell[][]> = Group extends [
+  infer H extends TicTacToeCell[],
+  ...infer Tail extends TicTacToeCell[][]
 ]
-  ? GetWinnerFromGroup<[TopLeft, TopCenter, TopRight]> extends TicTacToeChip
-    ? `${TopLeft} Won`
-    : GetWinnerFromGroup<
-        [MiddleLeft, MiddleCenter, MiddleRight]
-      > extends TicTacToeChip
-    ? `${MiddleLeft} Won`
-    : GetWinnerFromGroup<
-        [BottomLeft, BottomCenter, BottomRight]
-      > extends TicTacToeChip
-    ? `${BottomLeft} Won`
-    : GetWinnerFromGroup<
-        [TopLeft, MiddleCenter, BottomRight]
-      > extends TicTacToeChip
-    ? `${TopLeft} Won`
-    : GetWinnerFromGroup<
-        [TopRight, MiddleCenter, BottomLeft]
-      > extends TicTacToeChip
-    ? `${TopRight} Won`
-    : GetWinnerFromGroup<
-        [TopLeft, MiddleLeft, BottomLeft]
-      > extends TicTacToeChip
-    ? `${TopLeft} Won`
-    : GetWinnerFromGroup<
-        [TopCenter, MiddleCenter, BottomCenter]
-      > extends TicTacToeChip
-    ? `${TopCenter} Won`
-    : GetWinnerFromGroup<
-        [TopRight, MiddleRight, BottomRight]
-      > extends TicTacToeChip
-    ? `${TopRight} Won`
+  ? GetWinnerFromGroup<H> extends infer ChipType
+    ? ChipType extends false
+      ? GetWinnerFromGroups<Tail>
+      : ChipType
+    : false
+  : false;
+
+type GetCols<Board extends TicTactToeBoard> = [
+  [Board[0][0], Board[1][0], Board[2][0]],
+  [Board[0][1], Board[1][1], Board[2][1]],
+  [Board[0][2], Board[1][2], Board[2][2]]
+];
+
+type GetDiagonals<Board extends TicTactToeBoard> = [
+  [Board[0][0], Board[1][1], Board[2][2]],
+  [Board[2][0], Board[1][1], Board[0][2]]
+];
+
+type GetGameWinner<Board extends TicTactToeBoard> =
+  | GetWinnerFromGroups<Board>
+  | GetWinnerFromGroups<GetCols<Board>>
+  | GetWinnerFromGroups<GetDiagonals<Board>>;
+
+type GetNextState<Game extends TicTacToeGame> = GetGameWinner<
+  Game["board"]
+> extends infer Chip
+  ? "❌" extends Chip
+    ? `❌ Won`
+    : "⭕" extends Chip
+    ? "⭕ Won"
     : Game["board"] extends TicTacToeChip[][]
     ? "Draw"
     : Game["state"] extends "⭕"
