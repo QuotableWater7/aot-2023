@@ -120,14 +120,6 @@ type Move<
       > extends infer PotentialNewMaze extends MazeMatrix
     ? PotentialNewMaze extends Maze
       ? Maze
-      : UpdateMaze<
-          SantaPos,
-          Alley,
-          PotentialNewMaze
-        > extends infer PossibleWin extends MazeMatrix
-      ? IsWin<PossibleWin> extends true
-        ? CookieMaze
-        : PossibleWin
-      : PotentialNewMaze
+      : UpdateMaze<SantaPos, Alley, PotentialNewMaze>
     : Maze
   : never;
