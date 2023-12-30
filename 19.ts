@@ -1,12 +1,11 @@
-type GetNext<V> = V extends "🛹"
-  ? "🚲"
-  : V extends "🚲"
-  ? "🛴"
-  : V extends "🛴"
-  ? "🏄"
-  : V extends "🏄"
-  ? "🛹"
-  : never;
+type ItemMap = {
+  "🛹": "🚲";
+  "🚲": "🛴";
+  "🛴": "🏄";
+  "🏄": "🛹";
+};
+
+type Items = keyof ItemMap;
 
 type MakeArr<
   V extends string,
@@ -16,11 +15,11 @@ type MakeArr<
 
 type Rebuild<
   T extends readonly number[],
-  Present extends string = "🛹"
+  Present extends Items = "🛹"
 > = T extends [infer H, ...infer Tail]
   ? H extends number
     ? Tail extends readonly number[]
-      ? [...MakeArr<Present, H>, ...Rebuild<Tail, GetNext<Present>>]
+      ? [...MakeArr<Present, H>, ...Rebuild<Tail, ItemMap[Present]>]
       : []
     : []
   : [];
