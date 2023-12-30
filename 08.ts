@@ -1,3 +1,3 @@
 type RemoveNaughtyChildren<T extends Record<string, unknown>> = {
-  [K in keyof T as K extends `naughty_${string}` ? never : K]: T[K];
+  [K in Exclude<keyof T, `naughty_${string}`>]: T[K];
 };
