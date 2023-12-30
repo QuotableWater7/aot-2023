@@ -66,11 +66,11 @@ type ReplacePos<
     : ReplacePos<Pos, Val, Rest, [...Acc, H]>
   : never;
 
-type UpdateMaze<
+type UpdateMazeHelper<
   Coords extends Coordinate,
   Val extends MazeItem,
   Maze extends MazeMatrix,
-  NewMaze extends MazeItem[][] = []
+  NewMaze extends MazeItem[][] = [] // accumulates the updated maze
 > = Coords extends [infer Y extends number, infer X extends number]
   ? Maze extends [
       infer Row extends MazeItem[],
@@ -78,17 +78,32 @@ type UpdateMaze<
     ]
     ? Y extends NewMaze["length"]
       ? [...NewMaze, ReplacePos<X, Val, Row>, ...Rest]
-      : UpdateMaze<Coords, Val, Rest, [...NewMaze, Row]>
+      : UpdateMazeHelper<Coords, Val, Rest, [...NewMaze, Row]>
     : NewMaze
   : never;
 
+type UpdateMaze<
+  OldCoords extends Coordinate,
+  NewCoords extends Coordinate,
+  Maze extends MazeMatrix
+> = UpdateMazeHelper<
+  NewCoords,
+  Santa,
+  Maze
+> extends infer MazeWithNewSantaPos extends MazeMatrix
+  ? MazeWithNewSantaPos extends Maze // move was invalid
+    ? Maze // so we return the original maze
+    : UpdateMazeHelper<OldCoords, Alley, MazeWithNewSantaPos> // otherwise, we replace old position with Alley
+  : never;
+
+// check boundary conditions (we can only escape the maze if prior moves were valid)
 type IsWin<
   Maze extends MazeMatrix,
   NewCoords extends Coordinate
 > = NewCoords extends [infer X extends number, infer Y extends number]
-  ? Y extends -1 | [...Maze, unknown]["length"] // out of bounds -> Santa escaped
+  ? Y extends -1 | Maze["length"] // out of bounds -> Santa escaped
     ? true
-    : X extends -1 | [...Maze[0], unknown]["length"] // out of bounds -> Santa escaped
+    : X extends -1 | Maze[0]["length"] // out of bounds -> Santa escaped
     ? true
     : false
   : false;
@@ -100,13 +115,5 @@ type Move<
 > = UpdateCoords<SantaPos, Dir> extends infer NewCoords extends Coordinate
   ? IsWin<Maze, NewCoords> extends true
     ? CookieMaze
-    : UpdateMaze<
-        NewCoords,
-        Santa,
-        Maze
-      > extends infer PotentialNewMaze extends MazeMatrix
-    ? PotentialNewMaze extends Maze
-      ? Maze
-      : UpdateMaze<SantaPos, Alley, PotentialNewMaze>
-    : Maze
+    : UpdateMaze<SantaPos, NewCoords, Maze>
   : never;
