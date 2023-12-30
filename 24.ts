@@ -2,23 +2,27 @@ type Alley = "  ";
 type Santa = "🎅";
 type Tree = "🎄";
 type MazeItem = Tree | Santa | Alley;
-type DELICIOUS_COOKIES = "🍪";
+type Cookie = "🍪";
 type MazeMatrix = MazeItem[][];
 type Directions = "up" | "down" | "left" | "right";
-type Coordinate = [number, number];
 
-type CookieMaze = [
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"],
-  ["🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪", "🍪"]
-];
+type BuildArr<
+  Length extends number,
+  V = unknown,
+  Acc extends unknown[] = []
+> = Acc["length"] extends Length ? Acc : BuildArr<Length, V, [...Acc, V]>;
+
+type CreateNByN<
+  Size extends number,
+  V = unknown,
+  Acc extends readonly V[][] = []
+> = Size extends Acc["length"]
+  ? Acc
+  : CreateNByN<Size, V, [...Acc, BuildArr<Size, V>]>;
+
+type CookieMaze = CreateNByN<10, Cookie>;
+
+type Coordinate = [number, number];
 
 type Str2Num<T> = T extends `${infer N extends number}` ? N : never;
 
@@ -27,11 +31,6 @@ type FindSanta<T extends readonly any[][]> = {
     [J in keyof T[I]]: T[I][J] extends "🎅" ? [Str2Num<I>, Str2Num<J>] : never;
   }[keyof T[number]];
 }[number];
-
-type BuildArr<
-  Length extends number,
-  Acc extends unknown[] = []
-> = Acc["length"] extends Length ? Acc : BuildArr<Length, [...Acc, unknown]>;
 
 type Subtract1<T extends number> = BuildArr<T> extends [infer _, ...infer Rest]
   ? Rest["length"]
