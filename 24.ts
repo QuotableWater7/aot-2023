@@ -83,24 +83,6 @@ type UpdateMaze<
     : NewMaze
   : never;
 
-type IsSantaInRow<T extends MazeItem[]> = T extends [
-  infer H extends MazeItem,
-  ...infer Tail extends MazeItem[]
-]
-  ? H extends Santa
-    ? true
-    : IsSantaInRow<Tail>
-  : false;
-
-type IsWin<T extends MazeMatrix> = T extends [
-  infer Row extends MazeItem[],
-  ...infer Rest extends MazeMatrix
-]
-  ? IsSantaInRow<Row> extends true
-    ? false
-    : IsWin<Rest>
-  : false;
-
 type Move<
   Maze extends MazeMatrix,
   Dir extends Directions,
