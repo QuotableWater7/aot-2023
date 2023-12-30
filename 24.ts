@@ -82,20 +82,26 @@ type UpdateMaze<
     : NewMaze
   : never;
 
+type IsWin<
+  Maze extends MazeMatrix,
+  NewCoords extends Coordinate
+> = NewCoords extends [infer X extends number, infer Y extends number]
+  ? Y extends -1 | [...Maze, unknown]["length"] // out of bounds -> Santa escaped
+    ? true
+    : X extends -1 | [...Maze[0], unknown]["length"] // out of bounds -> Santa escaped
+    ? true
+    : false
+  : false;
+
 type Move<
   Maze extends MazeMatrix,
   Dir extends Directions,
   SantaPos extends Coordinate = FindSanta<Maze>
-> = UpdateCoords<SantaPos, Dir> extends [
-  infer Y extends number,
-  infer X extends number
-]
-  ? Y extends -1 | [...Maze, unknown]["length"] // out of bounds -> Santa escaped
-    ? CookieMaze
-    : X extends -1 | [...Maze[0], unknown]["length"] // out of bounds -> Santa escaped
+> = UpdateCoords<SantaPos, Dir> extends infer NewCoords extends Coordinate
+  ? IsWin<Maze, NewCoords> extends true
     ? CookieMaze
     : UpdateMaze<
-        [Y, X],
+        NewCoords,
         Santa,
         Maze
       > extends infer PotentialNewMaze extends MazeMatrix
